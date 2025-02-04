@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="formulari.css">
+    <script type="module" src="validacions.js"></script>
+    <title>WhatsApp</title>
+</head>
+
+<body>
+    <header class="bg-gray-800 text-white flex items-center justify-between h-20">
+        <h1>BUGFIX</h1>
+    </header>
+
+    <main>
+        <form id="login">
+            <h1>Login</h1>
+            <label for="nameuser">Nombre de usuario</label>
+            <input type="text" id="nameuser" placeholder="Enter your username" required>
+            <label for="password">Contraseña</label>
+            <input type="password" id="password" placeholder="Enter your password" required>
+            <button type="submit">Iniciar sesión</button>
+        </form>
+
+        <div id="postLoginContainer" style="display: none;">
+            <h2>Benvingut!</h2>
+            <div id="userListContainer"></div>
+        </div>
+
+</body>
+
+</html>

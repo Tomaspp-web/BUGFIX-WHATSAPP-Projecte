@@ -1,10 +1,6 @@
-// controls_errors.js: Fitxer per a la gestió de controls d'errors
 
-import { ExcepcioNoAutoritzat, ExcepcioNoTrobat, llistaUsuaris } from './excepcions.js';
-
-// Funció per validar si un usuari existeix i està autoritzat
 export function validarUsuari(idUsuari) {
-    const usuari = llistaUsuaris.find((usuari) => usuari.id === idUsuari);
+    let usuari = llistaUsuaris.find((usuari) => usuari.id === idUsuari);
 
     if (!usuari) {
         throw new ExcepcioNoTrobat(`Usuari amb ID ${idUsuari} no trobat.`);
@@ -17,7 +13,6 @@ export function validarUsuari(idUsuari) {
     return usuari;
 }
 
-// Funció per gestionar els errors de manera centralitzada
 export function gestionarError(error) {
     if (error instanceof ExcepcioNoTrobat) {
         console.error("Error de tipus 'No trobat':", error.message);
@@ -27,3 +22,19 @@ export function gestionarError(error) {
         console.error("Error desconegut:", error.message);
     }
 }
+
+export class ExcepcioNoAutoritzat extends Error {
+    constructor(message = "No autoritzat") {
+        super(message);
+        this.name = "ExcepcioNoAutoritzat";
+    }
+}
+
+export class ExcepcioNoTrobat extends Error {
+    constructor(message = "No trobat") {
+        super(message);
+        this.name = "ExcepcioNoTrobat";
+    }
+}
+
+

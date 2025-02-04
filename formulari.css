@@ -15,9 +15,6 @@ header {
     padding: 0 20px;
 }
 
-header .logo img {
-    width: 80px;
-}
 
 header nav a {
     color: white;
@@ -28,6 +25,15 @@ header nav a {
 header nav a:hover {
     text-decoration: underline;
 }
+
+h1 {
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
 
 form {
     background-color: white;
@@ -51,7 +57,7 @@ form label {
 }
 
 form input {
-    width: calc(100% - 20px);
+    width: 84%;
     padding: 10px;
     margin-bottom: 20px;
     border: 1px solid #ccc;
@@ -59,7 +65,7 @@ form input {
 }
 
 form button {
-    width: 100%;
+    width: 90%;
     padding: 10px;
     background-color: #2d3748;
     color: white;

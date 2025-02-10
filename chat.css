@@ -1,3 +1,11 @@
+:root {
+    --true-blue: #0466c8ff;
+    --oxford-blue: #002855ff;
+    --delft-blue: #33415cff;
+    --eerie-black: #1a1d23ff;
+    --rich-black: #000a14ff;
+}
+
 body {
     font-family: 'Roboto', sans-serif;
     margin: 0;
@@ -5,20 +13,6 @@ body {
     flex-direction: column;
     height: 100dvh;
     overflow: hidden;
-}
- /* Dark Theme */
- .dark-theme {
-    background-color: #121212;
-    color: white;
-}
-
-/* Mobile View Simulation */
-.mobile-view {
-    width: 375px;
-    height: 667px;
-    border: 2px solid black;
-    overflow: auto;
-    margin: auto;
 }
 
 .chat-list {
@@ -28,9 +22,11 @@ body {
     padding-right: 5px;
 }
 
-.btn-settings {
+.btn-settings,
+.btn-grupo {
     font-size: 30px;
     border: none;
+    max-width: 20%;
     cursor: pointer;
 }
 
@@ -65,7 +61,6 @@ body {
 
 .chat-header {
     padding: 15px;
-    height: 45px;
     font-weight: bold;
     display: flex;
     justify-content: space-between;
@@ -80,6 +75,8 @@ body {
     flex-direction: column;
     gap: 10px;
 }
+
+
 
 .chat-footer {
     display: flex;
@@ -207,31 +204,48 @@ body {
     align-self: flex-end;
 }
 
-.dark-theme {
-    background-color: #121212;
-    color: #ffffff;
+.dark-theme .btn-grupo,
+.dark-theme .btn-settings {
+    background-color: var(--eerie-black);
+    color: var(--eerie-black);
+}
+
+.dark-theme .chat-list .list-group-item {
+    background-color: var(--eerie-black);
+    border-color: var(--eerie-black);
+    color: white;
+}
+
+.dark-theme .chat-list .list-group-item:hover {
+    background-color: var(--delft-blue);
 }
 
 .dark-theme .sidebar {
-    background-color: #333;
+    background-color: var(--eerie-black);
 }
 
 .dark-theme .chat-header {
-    background-color: #333;
+    background-color: var(--oxford-blue);
 }
 
 .dark-theme .chat-body {
-    background-color: #222;
+    background-color: var(--eerie-black);
+    color: white;
+}
+
+.dark-theme .btn {
+    background-color: var(--oxford-blue);
+    color: white;
 }
 
 .dark-theme .chat-footer {
-    background-color: #333;
+    background-color: var(--eerie-black);
 }
 
 .dark-theme .message.received {
-    background-color: #444;
+    background-color: var(--delft-blue);
 }
 
 .dark-theme .message.sent {
-    background-color: #007bff;
-}   
+    background-color: var(--true-blue);
+}

@@ -119,22 +119,34 @@ class BaseDeDatos:
         self.cursor.execute(sql, (id_usuario, destinatario, destinatario, id_usuario))
         mensajes = self.cursor.fetchall()
         return mensajes
-        
-    def obtenir_missatges_G(self, id_grupo):
-        sql = "SELECT id_usuari, text, estat, date FROM MISSATGES_G WHERE id_grup = %s ORDER BY date DESC LIMIT 10;"
-        self.cursor.execute(sql, (id_grupo,))
-        mensajes = self.cursor.fetchall()
-        sql = "UPDATE MISSATGES_G SET estat = 'leido' WHERE id_grup = %s"
-        self.cursor.execute(sql, (id_grupo))
-        return mensajes
+
 
     def enviar_missatge_G(self, id_grup, id_usuari, missatge):
         sql = "INSERT INTO MISSATGES_G (id_grup, id_usuari, text, estat) VALUES (%s, %s, %s, 'enviado')"
         self.cursor.execute(sql, (id_grup, id_usuari, missatge))
 
-    def obtener_usuarios(self):
-        sql = "SELECT id, username FROM usuarisclase"
-        self.cursor.execute(sql)
+    def obtenir_missatges_G(self, id_grupo):
+        sql = """SELECT id_usuari, u.username as nom, text, estat, date 
+                FROM MISSATGES_G g
+                inner join usuarisclase u on u.id = g.id_usuari
+                WHERE id_grup = %s ORDER BY date DESC LIMIT 10;"""
+        self.cursor.execute(sql, (id_grupo,))
+        mensajes = self.cursor.fetchall()
+        sql = "UPDATE MISSATGES_G SET estat = 'leido' WHERE id_grup = %s"
+        self.cursor.execute(sql, (id_grupo))
+        return mensajes
+    
+    def obtener_usuarios(self, id_usuario):
+        sql = """SELECT u.id AS id_usuario, u.username AS nombre_usuario,
+                COALESCE(MAX(mu.date), '1900-01-01') AS ultima_actividad
+                FROM usuarisclase u
+                LEFT JOIN MISSATGES_U mu 
+                    ON (u.id = mu.id_usuario_envia OR u.id = mu.id_usuario_recibe)
+                    AND (mu.id_usuario_envia = %s OR mu.id_usuario_recibe = %s)
+                WHERE u.id != %s
+                GROUP BY u.id
+                ORDER BY ultima_actividad desc;""" 
+        self.cursor.execute(sql, id_usuario, id_usuario, id_usuario)
         return self.cursor.fetchall()
 
     def cambiar_estado_U(self, id_mensaje, estado):

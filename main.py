@@ -37,7 +37,7 @@ class Mensaje(BaseModel):
 class MensajeGrup(BaseModel):
     id_grupo: int
     mensaje: str
-    
+
 def generar_token(username: str, user_id: int):
     expiracion = datetime.utcnow() + timedelta(hours=1)
     payload = {"sub": username, "id": user_id, "exp": expiracion}
@@ -113,7 +113,7 @@ def enviar_missatge(missatge: Mensaje, request: Request):
     
     try:
         json_data = request.json()
-        print(f"💾 Rebent JSON: {json_data}")  # ✅ Depuració
+        print(f"💾 Rebent JSON: {json_data}") 
     except Exception as e:
         print(f"❌ Error llegint JSON: {e}")
     
@@ -122,19 +122,21 @@ def enviar_missatge(missatge: Mensaje, request: Request):
 
 
 @app.get("/missatgesAmics/{destinatario}")
-def obtenir_missatges(destinatario, request: Request):
+def obtenir_missatges(destinatario, request: Request,pagina:int):
     verificar_token(request)
     missatges = bd.obtener_mensajes(request.state.id, destinatario)
+    contacto = bd.get_username(destinatario)
 
     if not missatges:
-        raise HTTPException(status_code=404, detail="No s'han trobat missatges per aquest contacte")
+        return {"missatges": 0, "destinatario": contacto}
     
-    contacto = bd.get_username(destinatario)
     return {"missatges": missatges, "destinatario": contacto}
 
 @app.post("/missatgesGrup")
 def enviar_missatge_G(missatge: MensajeGrup, request: Request):
     verificar_token(request)
+
+
     bd.enviar_missatge_G(missatge.id_grupo, request.state.id, missatge.mensaje)
     return {"mensaje": "Missatge enviat correctament al grup"}
 
@@ -142,11 +144,12 @@ def enviar_missatge_G(missatge: MensajeGrup, request: Request):
 def obtenir_missatges_G(id_grupo, request: Request):
     verificar_token(request)
     missatges = bd.obtenir_missatges_G(id_grupo)
-
-    if not missatges:
-        raise HTTPException(status_code=404, detail="No s'han trobat missatges per aquest grup")
     chat = bd.get_nom_grup(id_grupo)
-    return {"missatges": missatges, "destinatario": chat}
+    
+    if not missatges:
+        return {"missatges": 0, "destinatario": chat, "id_usuario": request.state.id}
+    
+    return {"missatges": missatges, "destinatario": chat, "id_usuario": request.state.id}
 
 # Endpoint: Canviar estat de missatge
 @app.put("/check")
@@ -156,8 +159,9 @@ def cambiar_estado(id_missatge: int, nou_estat: str, request: Request):
     return {"mensaje": f"Estat del missatge {id_missatge} actualitzat a {nou_estat}"}
 
 @app.get("/usuarios")
-def obtener_usuarios():
-    usuarios = bd.obtener_usuarios()
+def obtener_usuarios(request: Request):
+    verificar_token(request)
+    usuarios = bd.obtener_usuarios(request.state.id)
     return {"usuarios": usuarios}
 
 @app.get("/usuario/{id_usuario}")

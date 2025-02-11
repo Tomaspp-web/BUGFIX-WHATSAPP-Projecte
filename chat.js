@@ -1,4 +1,4 @@
-import { apiGet, apiPostWithToken } from "./connectivitat.js";
+import { apiGet, apiPostWithToken, apiPut } from "./connectivitat.js";
 
 document.addEventListener('DOMContentLoaded', async () => {
     let usuaris = await fetchUsuarios();
@@ -12,16 +12,44 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('groupModal').style.display = 'none';
     });
     document.getElementById('groupForm').addEventListener('submit', crearGrupo);
+
+    document.getElementById("chatContainer").addEventListener("scroll", async function () {
+        if (this.scrollTop === 0 && !chatData.cargando) {
+            await cargarMasMensajes(false);
+        }
+    });
+
+    document.getElementById('backButton').addEventListener('click', () => {
+        document.querySelector('.chat-window').classList.remove('active');
+    });
 });
+
+
+let chatData = {
+    id: null,
+    tipo: null,
+    mensajes: [],
+    pagina: 0,
+    cargando: false
+};
+
 
 async function mostraChat(contacto) {
     console.log("📩 Click en usuario/grupo:", contacto);
-    let token = sessionStorage.getItem('token');
+    let token = comprobarToken();
     if (!contacto || !contacto.id === 0) {
         console.error("❌ Error: L'objecte contacte no té un ID vàlid.", contacto.id);
         return;
     }
-    let id = contacto.id;
+    let chatContainer = document.getElementById('chatContainer');
+    chatContainer.innerHTML = '';
+
+    chatData.id = contacto.id;
+    chatData.tipo = contacto.tipo;
+    chatData.mensajes = [];
+    chatData.pagina = 0;
+
+    /* let id = contacto.id;
     console.log(`📡 Sol·licitant missatges de l'usuari/grup amb ID: ${id}`);
     let response;
     if (contacto.tipo === 'usuario') {
@@ -38,18 +66,75 @@ async function mostraChat(contacto) {
         } else if (contacto.tipo === 'grupo') {
             pintarMensajesGrupo(response.missatges, response.id_usuario);
         }
-    }
-    console.log("📝 Pintant capçalera del xat:", response.destinatario);
+    } */
+
+
+    await cargarMasMensajes(true);
     let chatHeader = document.querySelector(".chat-header h5");
-    chatHeader.textContent = response.destinatario;
+    chatHeader.textContent = contacto.tipo === "usuario" ? contacto.nombre_usuario : contacto.nombre_grupo;
     sessionStorage.setItem('chat', JSON.stringify(contacto));
+
+    if (contacto.tipo === "usuario") {
+        await apiPut(`/check`, { id_contacto: contacto.id, nou_estat: 'leido' }, token);
+    } else {
+        document.getElementById('messageInput').disabled = false;
+    }
+
+    document.querySelector('.chat-window').classList.add('active');
+
 }
 
-function pintarMensajesUsuario(mensajes, idUsuario) {
-    let chatContainer = document.getElementById('chatContainer');
-    chatContainer.innerHTML = '';
+async function cargarMasMensajes(primeraCarga) {
+    if (chatData.cargando) return;
 
-    mensajes.reverse().forEach(mensaje => {
+    chatData.cargando = true;
+    let token = comprobarToken();
+    let id = chatData.id;
+    let response;
+
+    if (chatData.tipo === "usuario") {
+        response = await apiGet(`/missatgesAmics/${id}?pagina=${chatData.pagina}`, token);
+    } else if (chatData.tipo === "grupo") {
+        response = await apiGet(`/missatgesGrup/${id}?pagina=${chatData.pagina}`, token);
+    }
+
+    if (!response || response.missatges.length === 0) {
+        console.warn("No hi ha més missatges per carregar.");
+        chatData.cargando = false;
+        return;
+    }
+
+    let chatContainer = document.getElementById("chatContainer");
+    let posicioScrollAbans = chatContainer.scrollTop;
+    let alturaAbans = chatContainer.scrollHeight;
+
+    let mensajesNuevos = response.missatges;
+
+    chatData.mensajes = [...mensajesNuevos, ...chatData.mensajes];
+    console.log("📡 Missatges carregats:", chatData.mensajes);
+    chatData.pagina++;
+
+    if (chatData.tipo === "usuario") {
+        pintarMensajesUsuario(mensajesNuevos, id, primeraCarga, true);
+    } else if (chatData.tipo === "grupo") {
+        pintarMensajesGrupo(mensajesNuevos, response.id_usuario, primeraCarga, true);
+    }
+
+    setTimeout(() => {
+        let alturaDespres = chatContainer.scrollHeight;
+        chatContainer.scrollTop = posicioScrollAbans + (alturaDespres - alturaAbans);
+    }, 50);
+
+    chatData.cargando = false;
+}
+
+
+
+function pintarMensajesUsuario(mensajes, idUsuario, primeraCarga) {
+    let chatContainer = document.getElementById("chatContainer");
+    let scrollPos = chatContainer.scrollHeight - chatContainer.scrollTop;
+
+    mensajes.forEach(mensaje => {
         let messageElement = document.createElement('div');
         if (mensaje.id_usuario_envia === idUsuario) {
             messageElement.classList.add('message', 'received');
@@ -57,17 +142,32 @@ function pintarMensajesUsuario(mensajes, idUsuario) {
             messageElement.classList.add('message', 'sent');
         }
         messageElement.textContent = `${mensaje.nom_usuari}: ${mensaje.text}`;
-        chatContainer.appendChild(messageElement);
+        let tickElement = document.createElement('span');
+        tickElement.classList.add('tick');
+        if (mensaje.estat === 'leido') {
+            tickElement.classList.add('leido');
+            tickElement.textContent = '✓✓';
+        } else {
+            tickElement.textContent = '✓';
+        }
+        messageElement.appendChild(tickElement);
+        chatContainer.insertBefore(messageElement, chatContainer.firstChild);
     });
-    scrollToBottom();
+
+    if (!primeraCarga) {
+        chatContainer.scrollTop = chatContainer.scrollHeight - scrollPos;
+    } else {
+        scrollToBottom();
+    }
 }
 
 
-function pintarMensajesGrupo(mensajes, id_usuario) {
+function pintarMensajesGrupo(mensajes, id_usuario, primeraCarga) {
     let chatContainer = document.getElementById('chatContainer');
+    let scrollPos = chatContainer.scrollHeight - chatContainer.scrollTop;
     chatContainer.innerHTML = '';
     console.log("👤 Usuario actual:", id_usuario);
-    mensajes.reverse().forEach(mensaje => {
+    mensajes.forEach(mensaje => {
         let messageElement = document.createElement('div');
         if (mensaje.id_usuari === id_usuario) {
             messageElement.classList.add('message', 'sent');
@@ -75,9 +175,14 @@ function pintarMensajesGrupo(mensajes, id_usuario) {
             messageElement.classList.add('message', 'received');
         }
         messageElement.textContent = `${mensaje.nom}: ${mensaje.text}`;
-        chatContainer.appendChild(messageElement);
+        chatContainer.insertBefore(messageElement, chatContainer.firstChild);
     });
-    scrollToBottom();
+
+    if (!primeraCarga) {
+        chatContainer.scrollTop = chatContainer.scrollHeight - scrollPos;
+    } else {
+        scrollToBottom();
+    }
 }
 
 function scrollToBottom() {
@@ -121,12 +226,10 @@ function mostrarUsuarios(usuarios) {
 
         listItem.appendChild(userElement);
         listItem.addEventListener('click', () => {
-            if (Number.isInteger(contacto.id_grupo)) {
-                mostraChat({ id: contacto.id_grupo, tipo: 'grupo' });
-            } else if (Number.isInteger(contacto.id_usuario)) {
-                mostraChat({ id: contacto.id_usuario, tipo: 'usuario' });
-            } else {
-                console.error("Error: El objeto contacto no tiene un ID válido.", contacto);
+            if (contacto.id_grupo) {
+                mostraChat({ id: contacto.id_grupo, nombre_grupo: contacto.nombre_grupo, tipo: 'grupo' });
+            } else if (contacto.id_usuario) {
+                mostraChat({ id: contacto.id_usuario, nombre_usuario: contacto.nombre_usuario, tipo: 'usuario' });
             }
         });
 
@@ -231,7 +334,7 @@ async function crearGrupo(event) {
 
     let groupName = document.getElementById('groupName').value;
     let groupDescription = document.getElementById('groupDescription').value;
-    
+
     let selectedContacts = document.getElementById('selectedContactsContainer').querySelectorAll('span');
     let groupMembers = Array.from(selectedContacts).map(item => parseInt(item.dataset.id));
 
@@ -265,7 +368,7 @@ async function crearGrupo(event) {
 
 function agregarAGrupo(contacto) {
     let selectedContactsContainer = document.getElementById('selectedContactsContainer');
-    
+
     if (document.querySelector(`#selectedContactsContainer span[data-id="${contacto.id_usuario}"]`)) {
         return;
     }
@@ -274,12 +377,12 @@ function agregarAGrupo(contacto) {
     userSpan.classList.add('badge', 'bg-primary', 'p-2', 'me-2', 'd-flex', 'align-items-center');
     userSpan.textContent = contacto.nombre_usuario;
     userSpan.dataset.id = contacto.id_usuario;
-    
+
     let removeButton = document.createElement('button');
     removeButton.classList.add('btn', 'btn-sm', 'btn-danger', 'ms-2');
     removeButton.textContent = '-';
     removeButton.onclick = () => eliminarDeGrupo(userSpan);
-    
+
     userSpan.appendChild(removeButton);
     selectedContactsContainer.appendChild(userSpan);
 }
@@ -287,9 +390,9 @@ function agregarAGrupo(contacto) {
 async function cargarContactosParaGrupo() {
     let token = comprobarToken();
     let response = await apiGet('/contactos', token);
-    
+
     let availableContacts = document.getElementById('availableContacts');
-    availableContacts.innerHTML = ''; 
+    availableContacts.innerHTML = '';
 
     if (!response || !response.contactos) {
         console.error("❌ No s'han pogut carregar els contactes.");
@@ -297,7 +400,7 @@ async function cargarContactosParaGrupo() {
     }
 
     response.contactos.forEach(contacto => {
-        if (contacto.id_usuario) { 
+        if (contacto.id_usuario) {
             let listItem = document.createElement('li');
             listItem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
             listItem.textContent = contacto.nombre_usuario;

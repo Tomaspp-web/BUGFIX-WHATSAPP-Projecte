@@ -72,5 +72,23 @@ export async function apiPostWithToken(endpoint, data, token) {
     }
 }
 
+export async function apiPut(endpoint, data, token) {
+    try {
+        let response = await fetch(`${API_URL}${endpoint}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(data)
+        });
 
+        console.log(`📡 JSON enviat a ${endpoint}:`, JSON.stringify(data))
 
+        if (!response.ok) throw new Error(`Error ${response.status}: ${response.statusText}`);
+        return await response.json();
+    } catch (error) {
+        console.error(`PUT ${endpoint} - ${error.message}`);
+        throw error;
+    }
+}

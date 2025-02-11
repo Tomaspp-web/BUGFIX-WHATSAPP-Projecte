@@ -22,6 +22,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('backButton').addEventListener('click', () => {
         document.querySelector('.chat-window').classList.remove('active');
     });
+
+    const chatBackground = localStorage.getItem("chatBackground");
+    if (chatBackground) {
+        const chatContainer = document.getElementById("chatContainer");
+        chatContainer.style.backgroundImage = `url(${chatBackground})`;
+        chatContainer.style.backgroundSize = "cover";
+        chatContainer.style.backgroundPosition = "center";
+    }
 });
 
 
@@ -48,26 +56,6 @@ async function mostraChat(contacto) {
     chatData.tipo = contacto.tipo;
     chatData.mensajes = [];
     chatData.pagina = 0;
-
-    /* let id = contacto.id;
-    console.log(`📡 Sol·licitant missatges de l'usuari/grup amb ID: ${id}`);
-    let response;
-    if (contacto.tipo === 'usuario') {
-        response = await apiGet(`/missatgesAmics/${id}`, token);
-    } else if (contacto.tipo === 'grupo') {
-        response = await apiGet(`/missatgesGrup/${id}`, token);
-    }
-    console.log("📡 Resposta del servidor:", response);
-    if (response.missatges === 0) {
-        document.getElementById('chatContainer').innerHTML = '<p>No hi ha missatges en aquest xat.</p>';
-    } else {
-        if (contacto.tipo === 'usuario') {
-            pintarMensajesUsuario(response.missatges, id);
-        } else if (contacto.tipo === 'grupo') {
-            pintarMensajesGrupo(response.missatges, response.id_usuario);
-        }
-    } */
-
 
     await cargarMasMensajes(true);
     let chatHeader = document.querySelector(".chat-header h5");
@@ -98,7 +86,7 @@ async function cargarMasMensajes(primeraCarga) {
         response = await apiGet(`/missatgesGrup/${id}?pagina=${chatData.pagina}`, token);
     }
 
-    if (!response || response.missatges.length === 0) {
+    if (!response || response.missatges === 0) {
         console.warn("No hi ha més missatges per carregar.");
         chatData.cargando = false;
         return;
@@ -228,7 +216,7 @@ function mostrarUsuarios(usuarios) {
         listItem.addEventListener('click', () => {
             if (contacto.id_grupo) {
                 mostraChat({ id: contacto.id_grupo, nombre_grupo: contacto.nombre_grupo, tipo: 'grupo' });
-            } else if (contacto.id_usuario) {
+            } else if (contacto.id_usuario || contacto.id_usuario === 0) {
                 mostraChat({ id: contacto.id_usuario, nombre_usuario: contacto.nombre_usuario, tipo: 'usuario' });
             }
         });

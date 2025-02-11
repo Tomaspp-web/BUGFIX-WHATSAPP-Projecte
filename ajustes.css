@@ -1,0 +1,124 @@
+:root {
+    --primary-color: #0b0b87;
+    --color-secundario: #6c757d;
+    --azul-flojo: #17a2b8;
+    --rojo: #dc3545;
+    --verde-flojo: #d8f3dc;
+    --blanco: #ffffff;
+    --negro: #232020;
+    --azul-fuerte: #2c3e50;
+
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--verde-flojo);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.container {
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+
+.btn {
+    padding: 10px 20px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: var(--blanco);
+    border: none;
+}
+
+
+.btn-secondary {
+    background-color: var(--color-secundario);
+    color: var(--blanco);
+    border: none;
+}
+
+.btn-info {
+    background-color: var(--azul-flojo);
+    color: var(--blanco);
+    border: none;
+}
+
+
+.btn-danger {
+    background-color: var(--rojo);
+    color: var(--blanco);
+    border: none;
+}
+
+.form-select,
+.form-control {
+    padding: 10px;
+    border-radius: 5px;
+    background-color: var(--verde-flojo);
+}
+
+.form-select:focus,
+.form-control:focus {
+    border-color: var(--verde-flojo);
+}
+
+.dark-theme {
+    background-color: var(--azul-fuerte);
+    color: var(--blanco);
+}
+
+.dark-theme .container {
+    background-color: var(--azul-fuerte);
+    color: var(--blanco);
+}
+
+.dark-theme h1 {
+    color: var(--blanco);
+}
+
+.dark-theme .btn-primary {
+    background-color: var(--primary-color);
+    color: var(--blanco);
+}
+
+.dark-theme .btn-secondary {
+    background-color: var(--color-secundario);
+    color: var(--blanco);
+}
+
+.dark-theme .btn-info {
+    background-color: var(--azul-flojo);
+    color: var(--blanco);
+}
+
+.dark-theme .btn-danger {
+    background-color: var(--rojo);
+    color: var(--blanco);
+}
+
+.dark-theme .form-select,
+.dark-theme .form-control {
+    background-color: var(--azul-fuerte);
+    color: var(--blanco);
+    border: 1px solid #495057;
+}
+
+#chat-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background-size: cover;
+    background-position: center;
+}

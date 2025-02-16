@@ -1,6 +1,7 @@
 :root {
     --primary-color: #0b0b87;
     --color-secundario: #6c757d;
+    --verde-fuerte: #2d6a4f;
     --azul-flojo: #17a2b8;
     --rojo: #dc3545;
     --verde-flojo: #d8f3dc;
@@ -121,4 +122,20 @@ body {
     z-index: -1;
     background-size: cover;
     background-position: center;
+}
+
+.small-font {
+    font-size: 12px;
+}
+
+.normal-font {
+    font-size: 16px;
+}
+
+.big-font {
+    font-size: 20px;
+}
+
+.very-big-font {
+    font-size: 50px;
 }

@@ -7,9 +7,23 @@ $(document).ready(function () {
         $("#toggle-dark-mode").text(currentTheme === "dark-theme" ? "Modo Claro" : "Modo Oscuro");
     });
 
+    $("#font-size-select").change(function (event) {
+        const selectedSize = event.target.value;
+        document.body.classList.remove("small-font", "normal-font", "big-font", "very-big-font");
+        document.body.classList.add(`${selectedSize}-font`);
+        localStorage.setItem("fontSize", selectedSize);
+    });
+
     if (localStorage.getItem("theme")) {
         $("body").addClass(localStorage.getItem("theme"));
         $("#toggle-dark-mode").text(localStorage.getItem("theme") === "dark-theme" ? "Modo Claro" : "Modo Oscuro");
+    }
+
+    if (localStorage.getItem("fontSize")) {
+        const savedSize = localStorage.getItem("fontSize");
+        document.body.classList.remove("small-font", "normal-font", "big-font", "very-big-font");
+        document.body.classList.add(`${savedSize}-font`);
+        document.getElementById("font-size-select").value = savedSize;
     }
 
     $("#background-upload").change(function (event) {

@@ -12,7 +12,9 @@
     --true-blue: #0b0b87;
 }
 
+
 body {
+    font-size: inherit;
     font-family: 'Roboto', sans-serif;
     margin: 0;
     display: flex;
@@ -29,20 +31,18 @@ body {
 }
 
 .sidebar {
-    width: 220px;
+    width: 300px;
     height: 98%;
     display: flex;
     flex-direction: column;
     padding: 16px;
     overflow-y: auto;
     border-radius: 8px;
-    font-size: 13px;
     margin: 5px;
 }
 
 .sidebar h4 {
     margin: 0 0 16px;
-    font-size: 18px;
     font-weight: 500;
 }
 
@@ -50,7 +50,6 @@ body {
 .btn-grupo {
     background: transparent;
     border: none;
-    font-size: 24px;
     cursor: pointer;
 }
 
@@ -59,6 +58,27 @@ body {
     flex-grow: 1;
     overflow-y: auto;
     margin-top: 16px;
+}
+
+
+.list-group-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 8px;
+    margin-bottom: 5px;
+    transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.list-group-item span {
+    font-weight: bold;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .chat-list .list-group-item {
@@ -77,11 +97,15 @@ body {
     border-radius: 8px;
     margin: 5px;
     overflow: hidden;
+    width: 30%;
 }
 
 .chat-header {
     padding: 16px;
-    font-size: 18px;
+}
+
+.icon-black {
+    color: black;
 }
 
 .chat-body {
@@ -103,7 +127,6 @@ body {
     padding: 12px;
     border-radius: 8px;
     margin-right: 12px;
-    font-size: 14px;
     outline: none;
 }
 
@@ -112,7 +135,11 @@ body {
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 14px;
+}
+
+.message.info {
+    background-color: var(--gris);
+    color: white;
 }
 
 .message {
@@ -120,11 +147,12 @@ body {
     margin-bottom: 12px;
     border-radius: 12px;
     word-wrap: break-word;
-    font-size: 14px;
     line-height: 1.5;
     position: relative;
     display: inline-block;
     max-width: 50%;
+    align-self: center;
+    text-align: center;
 }
 
 .message.sent {
@@ -135,6 +163,10 @@ body {
 .message.received {
     align-self: flex-start;
     border-bottom-left-radius: 4px;
+}
+
+.time {
+    margin-left: 15px;
 }
 
 .modal {
@@ -164,7 +196,6 @@ body {
 }
 
 .modal-title {
-    font-size: 20px;
     font-weight: 500;
 }
 
@@ -178,7 +209,6 @@ body {
     padding: 12px;
     border-radius: 8px;
     margin-bottom: 12px;
-    font-size: 14px;
     outline: none;
 }
 
@@ -194,7 +224,6 @@ body {
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 14px;
 }
 
 
@@ -242,14 +271,12 @@ body {
         left: 0;
         z-index: 1000;
         background-color: var(--crema);
-        /* Asegúrate de que el fondo sea visible */
     }
 
     #backButton {
         background-color: transparent;
         border: none;
         color: var(--crema);
-        font-size: 14px;
         cursor: pointer;
         display: block;
     }
@@ -321,19 +348,19 @@ body {
 }
 
 
-.light-theme .message.message.sent {
+.light-theme .message.sent,
+.light-theme .message.sent .time {
     background-color: var(--verde-medio-flojo);
     color: var(--crema);
 }
 
-.light-theme .message.message.received {
+
+.light-theme .message.message.received,
+.light-theme .message.message.received .time {
     background-color: var(--crema);
-    border: 1px solid var(--gris);
 }
 
-.light-theme .btn-settings {
-    color: var(--verde-fuerte);
-}
+
 
 /*DARK*/
 
@@ -356,9 +383,6 @@ body {
     background-color: var(--delft-blue);
 }
 
-.dark-theme .btn-settings {
-    color: var(--delft-blue);
-}
 
 .dark-theme .chat-list .list-group-item {
     background-color: var(--delft-blue);
@@ -404,12 +428,14 @@ body {
     border: 1px solid var(--gris);
 }
 
-.dark-theme .message.message.sent {
+.dark-theme .message.message.sent,
+.dark-theme .message.sent .time {
     background-color: var(--true-blue);
     color: var(--crema);
 }
 
-.dark-theme .message.message.received {
+.dark-theme .message.message.received,
+.dark-theme .message.received .time {
     background-color: var(--gris);
     border: 1px solid var(--gris);
     color: var(--crema);
@@ -424,4 +450,27 @@ body {
     position: relative;
     background-size: cover;
     background-position: center;
+}
+
+.small-font {
+    font-size: 12px;
+}
+
+.normal-font {
+    font-size: 16px;
+}
+
+.big-font {
+    font-size: 25px;
+}
+
+.very-big-font {
+    font-size: 30px;
+}
+
+
+.tick.leido {
+    color: #34b7f1;
+    font-weight: bold;
+    margin-left: 8px;
 }

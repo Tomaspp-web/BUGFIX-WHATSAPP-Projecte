@@ -143,7 +143,7 @@ class BaseDeDatos:
                 WHERE u.id != %s
                 GROUP BY u.id
                 ORDER BY ultima_actividad desc;"""
-        self.cursor.execute(sql, id_usuario, id_usuario, id_usuario)
+        self.cursor.execute(sql, (id_usuario, id_usuario, id_usuario))
         return self.cursor.fetchall()
 
     def cambiar_estado_U(self, estado, id_contacto, id_usuario):

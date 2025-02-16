@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('closeGroupModal').addEventListener('click', () => {
         document.getElementById('groupModal').style.display = 'none';
     });
+
     document.getElementById('groupForm').addEventListener('submit', crearGrupo);
 
     document.getElementById("chatContainer").addEventListener("scroll", async function () {
@@ -18,6 +19,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             await cargarMasMensajes(false);
         }
     });
+
+    document.getElementById('messageInput').addEventListener('keypress', function (event) {
+        if (event.key === 'Enter') {
+            enviarMensaje();
+        }
+    });
+
+
+    const savedSize = localStorage.getItem('fontSize');
+    if (savedSize) {
+        document.body.classList.remove('small-font', 'normal-font', 'big-font', 'very-big-font');
+        document.body.classList.add(`${savedSize}-font`);
+    }
 
     document.getElementById('backButton').addEventListener('click', () => {
         document.querySelector('.chat-window').classList.remove('active');
@@ -30,6 +44,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         chatContainer.style.backgroundSize = "cover";
         chatContainer.style.backgroundPosition = "center";
     }
+
 });
 
 
@@ -58,8 +73,13 @@ async function mostraChat(contacto) {
     chatData.pagina = 0;
 
     await cargarMasMensajes(true);
-    let chatHeader = document.querySelector(".chat-header h5");
-    chatHeader.textContent = contacto.tipo === "usuario" ? contacto.nombre_usuario : contacto.nombre_grupo;
+
+    let chatHeader = document.querySelector(".chat-header");
+
+    chatHeader.innerHTML = '';
+    let h3 = document.createElement('h3');
+    h3.textContent = contacto.tipo === "usuario" ? contacto.nombre_usuario : contacto.nombre_grupo;
+    chatHeader.appendChild(h3);
     sessionStorage.setItem('chat', JSON.stringify(contacto));
 
     if (contacto.tipo === "usuario") {
@@ -69,7 +89,6 @@ async function mostraChat(contacto) {
     }
 
     document.querySelector('.chat-window').classList.add('active');
-
 }
 
 async function cargarMasMensajes(primeraCarga) {
@@ -87,7 +106,18 @@ async function cargarMasMensajes(primeraCarga) {
     }
 
     if (!response || response.missatges === 0) {
-        console.warn("No hi ha més missatges per carregar.");
+        let chatContainer = document.getElementById("chatContainer");
+        let p1 = document.querySelector('p');
+        if (p1) p1.remove();
+
+        let p = document.createElement('p');
+        p.classList.add('message', 'info');
+        if (primeraCarga) {
+            p.textContent = "No hi ha missatges a aquest chat.";
+        } else {
+            p.textContent = "No hi ha més missatges per carregar.";
+        }
+        chatContainer.insertBefore(p, chatContainer.firstChild);
         chatData.cargando = false;
         return;
     }
@@ -116,7 +146,14 @@ async function cargarMasMensajes(primeraCarga) {
     chatData.cargando = false;
 }
 
-
+$(document).ready(function () {
+    $('#groupInfoButton').click(function () {
+        $('#groupInfoModal').show();
+    });
+    $('#closeGroupInfoModal').click(function () {
+        $('#groupInfoModal').hide();
+    });
+});
 
 function pintarMensajesUsuario(mensajes, idUsuario, primeraCarga) {
     let chatContainer = document.getElementById("chatContainer");
@@ -124,21 +161,28 @@ function pintarMensajesUsuario(mensajes, idUsuario, primeraCarga) {
 
     mensajes.forEach(mensaje => {
         let messageElement = document.createElement('div');
+        let tickElement = document.createElement('span');
         if (mensaje.id_usuario_envia === idUsuario) {
             messageElement.classList.add('message', 'received');
         } else {
             messageElement.classList.add('message', 'sent');
+            tickElement.classList.add('tick');
+            if (mensaje.estat === 'leido') {
+                tickElement.classList.add('leido');
+                tickElement.textContent = '  🗸🗸';
+            } else {
+                tickElement.textContent = '  🗸';
+            }
         }
         messageElement.textContent = `${mensaje.nom_usuari}: ${mensaje.text}`;
-        let tickElement = document.createElement('span');
-        tickElement.classList.add('tick');
-        if (mensaje.estat === 'leido') {
-            tickElement.classList.add('leido');
-            tickElement.textContent = '✓✓';
-        } else {
-            tickElement.textContent = '✓';
-        }
+
+        let messageTime = document.createElement('span');
+        messageTime.classList.add('time');
+        messageTime.textContent = mensaje.date.split("T")[1].slice(0, 5);
+
+        messageElement.appendChild(messageTime);
         messageElement.appendChild(tickElement);
+
         chatContainer.insertBefore(messageElement, chatContainer.firstChild);
     });
 
@@ -153,7 +197,6 @@ function pintarMensajesUsuario(mensajes, idUsuario, primeraCarga) {
 function pintarMensajesGrupo(mensajes, id_usuario, primeraCarga) {
     let chatContainer = document.getElementById('chatContainer');
     let scrollPos = chatContainer.scrollHeight - chatContainer.scrollTop;
-    chatContainer.innerHTML = '';
     console.log("👤 Usuario actual:", id_usuario);
     mensajes.forEach(mensaje => {
         let messageElement = document.createElement('div');
@@ -201,13 +244,25 @@ function mostrarUsuarios(usuarios) {
         listItem.classList.add('list-group-item');
 
         let userElement = document.createElement('span');
-
         if (contacto.id_grupo !== null && contacto.id_grupo !== undefined) {
-            userElement.id = `${contacto.id_grupo}`;
-            userElement.textContent = `🔹 ${contacto.nombre_grupo}`;
+            if (contacto.mensajes_nuevos > 0) {
+                userElement.id = `${contacto.id_grupo}`;
+                userElement.textContent = `👥 ${contacto.nombre_grupo}      ·${contacto.mensajes_nuevos}`;
+                userElement.style.fontWeight = 'bold';
+            } else {
+                userElement.id = `${contacto.id_grupo}`;
+                userElement.textContent = `🫂 ${contacto.nombre_grupo}`;
+            }
+
         } else if (contacto.id_usuario !== null && contacto.id_usuario !== undefined) {
-            userElement.id = `${contacto.id_usuario}`;
-            userElement.textContent = `👤 ${contacto.nombre_usuario}`;
+            if (contacto.mensajes_nuevos > 0) {
+                userElement.id = `${contacto.id_usuario}`;
+                userElement.textContent = `🙋‍♂️ ${contacto.nombre_usuario} - - ${contacto.mensajes_nuevos}`;
+                userElement.style.fontWeight = 'bold';
+            } else {
+                userElement.id = `${contacto.id_usuario}`;
+                userElement.textContent = `🧑 ${contacto.nombre_usuario}`;
+            }
         } else {
             userElement.textContent = `Elemento desconegut`;
         }
@@ -316,11 +371,21 @@ async function enviarMensaje() {
         }
     }
 }
+
 async function crearGrupo(event) {
     event.preventDefault();
     let token = comprobarToken();
 
     let groupName = document.getElementById('groupName').value;
+
+    if (!groupName) {
+        alert("⚠️ Introdueix un nom per al grup.");
+        return;
+    } else if (groupName.length > 20) {
+        alert("⚠️ El nom del grup no pot superar els 20 caràcters.");
+        return
+    }
+
     let groupDescription = document.getElementById('groupDescription').value;
 
     let selectedContacts = document.getElementById('selectedContactsContainer').querySelectorAll('span');
@@ -349,14 +414,18 @@ async function crearGrupo(event) {
         console.error('Error al crear el grup:', error);
         alert('Error al crear el grup');
     }
+    let selectedContactsContainer = document.getElementById('selectedContactsContainer');
+    selectedContactsContainer.innerHTML = '';
 
     let usuaris = await fetchUsuarios();
     mostrarUsuarios(usuaris);
+
 }
 
 function agregarAGrupo(contacto) {
     let selectedContactsContainer = document.getElementById('selectedContactsContainer');
 
+    // Evita afegir usuaris duplicats
     if (document.querySelector(`#selectedContactsContainer span[data-id="${contacto.id_usuario}"]`)) {
         return;
     }
@@ -375,32 +444,31 @@ function agregarAGrupo(contacto) {
     selectedContactsContainer.appendChild(userSpan);
 }
 
+
+
 async function cargarContactosParaGrupo() {
     let token = comprobarToken();
-    let response = await apiGet('/contactos', token);
+    let response = await apiGet('/usuarios', token);
 
     let availableContacts = document.getElementById('availableContacts');
     availableContacts.innerHTML = '';
 
-    if (!response || !response.contactos) {
+    if (!response || !response.usuarios) {
         console.error("❌ No s'han pogut carregar els contactes.");
         return;
     }
 
-    response.contactos.forEach(contacto => {
-        if (contacto.id_usuario) {
+    response.usuarios.forEach(usuario => {
+        if (usuario.id_usuario || usuario.id_usuario === 0) {
             let listItem = document.createElement('li');
             listItem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
-            listItem.textContent = contacto.nombre_usuario;
-            listItem.dataset.id = contacto.id_usuario;
+            listItem.textContent = usuario.nombre_usuario;
+            listItem.dataset.id = usuario.id_usuario;
+            listItem.addEventListener('click', () => agregarAGrupo(usuario))
 
-            let addButton = document.createElement('button');
-            addButton.classList.add('btn', 'btn-sm', 'btn-success');
-            addButton.textContent = '+';
-            addButton.onclick = () => agregarAGrupo(contacto);
-
-            listItem.appendChild(addButton);
             availableContacts.appendChild(listItem);
         }
     });
 }
+
+

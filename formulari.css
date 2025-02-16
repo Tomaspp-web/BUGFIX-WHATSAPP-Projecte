@@ -1,19 +1,13 @@
-:root {
-    --blanco: #f4f4f4;
-    --gris-azul: #4a5568;
-    --gris-azul-fuerte: #2d3748;
-}
-
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Roboto' , sans-serif;
     margin: 0;
     padding: 0;
-    background-color: var(--blanco);
+    background-color: #f4f4f4;
 }
 
 header {
-    background-color: var(--gris-azul-fuerte);
-    color: var(--blanco);
+    background-color: #2d3748;
+    color: white;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -23,7 +17,7 @@ header {
 
 
 header nav a {
-    color: var(--blanco);
+    color: white;
     margin: 0 10px;
     text-decoration: none;
 }
@@ -42,7 +36,7 @@ h1 {
 
 
 form {
-    background-color: var(--blanco);
+    background-color: white;
     max-width: 400px;
     margin: 50px auto;
     padding: 20px;
@@ -73,13 +67,13 @@ form input {
 form button {
     width: 90%;
     padding: 10px;
-    background-color: var(--gris-azul-fuerte);
-    color: var(--blanco);
+    background-color: #2d3748;
+    color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
 }
 
 form button:hover {
-    background-color: var(--gris-azul);
+    background-color: #4a5568;
 }

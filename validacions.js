@@ -30,11 +30,11 @@ document.addEventListener('DOMContentLoaded', () => {
             let token = await loginUser(username, password);
             sessionStorage.setItem('token', token);
             window.location.href = "chat.html";
-            
+
         } catch (error) {
             alert('Error al iniciar sessió: ' + error.message);
         }
     });
 
-    
+
 });

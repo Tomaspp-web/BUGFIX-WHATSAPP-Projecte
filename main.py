@@ -22,7 +22,7 @@ ALGORITHM = "HS256"
 
 
 class UserLogin(BaseModel):
-    username: str
+    username: str   
     password: str
 
 
@@ -94,13 +94,9 @@ def verificar_token(request: Request):
 @app.post("/grupos")
 def crear_grupo(grupo: Grupo, request: Request):
     verificar_token(request)
-    id_usuario = bd.obtener_usuario(request.state.username)
-    if not id_usuario:
-        raise HTTPException(status_code=401, detail="Usuario no encontrado")
-
-    miembros = [id_usuario["id"]] + grupo.miembros
+    miembros = [request.state.id] + grupo.miembros
     id_grupo = bd.crear_grupo(
-        id_usuario["id"], grupo.nombre, grupo.descripcion, miembros
+        request.state.id, grupo.nombre, grupo.descripcion, miembros
     )
 
     if id_grupo:
@@ -149,7 +145,7 @@ def enviar_missatge_G(missatge: MensajeGrup, request: Request):
 @app.get("/missatgesGrup/{id_grupo}")
 def obtenir_missatges_G(id_grupo, request: Request, pagina: int):
     verificar_token(request)
-    missatges = bd.obtenir_missatges_G(id_grupo, pagina)
+    missatges = bd.obtenir_missatges_G(request.state.id, id_grupo, pagina)
     chat = bd.get_nom_grup(id_grupo)
 
     if not missatges:
@@ -173,6 +169,15 @@ def cambiar_estado(estado_update: EstadoUpdate, request: Request):
     }
 
 
+@app.put("/checkGrupo/{id_grupo}")
+def cambiar_estado_grupo(id_grupo, request: Request):
+    verificar_token(request)
+    bd.cambiar_estado_G(id_grupo, request.state.id)
+    return {
+        "mensaje": "Estat dels missatges del grup actualitzats a leido"
+    }
+
+
 @app.get("/usuarios")
 def obtener_usuarios(request: Request):
     verificar_token(request)
@@ -191,3 +196,50 @@ def obtener_contactos(request: Request):
     verificar_token(request)
     contactos = bd.obtener_contactos(request.state.id)
     return {"contactos": contactos}
+
+
+@app.get("/adminGrupo/{id_grupo}")
+def obtener_admin_grupo(id_grupo: int, request: Request):
+    verificar_token(request)
+    admin = bd.obtener_admins(id_grupo)
+    return admin
+
+@app.get("/miembrosGrupo/{id_grupo}")
+def obtener_miembros_grupo(id_grupo, request: Request):
+    verificar_token(request)
+    miembros = bd.obtener_miembros(id_grupo)
+    admin = bd.obtener_admins(id_grupo)
+    return {"miembros": miembros, "id_usuario": request.state.id, "admin": admin}
+
+
+@app.put("/añadirMiembro/{id_grupo}/{id_usuario}")
+def añadir_miembro(id_grupo, id_usuario, request: Request):
+    verificar_token(request)
+    bd.añadir_miembro(request.state.id, id_grupo, id_usuario)
+    return {"mensaje": "Miembro añadido correctamente"}
+
+@app.delete("/eliminarMiembro/{id_grupo}/{id_usuario}")
+def eliminar_miembro(id_grupo, id_usuario, request: Request):
+    verificar_token(request)
+    bd.eliminar_miembro(request.state.id, id_grupo, id_usuario)
+    return {"mensaje": "Miembro eliminado correctamente"}
+
+@app.delete("/salirGrupo/{id_grupo}")
+def salir_grupo(id_grupo, request: Request):
+    verificar_token(request)
+    bd.eliminar_miembro(request.state.id, id_grupo, request.state.id)
+    return {"mensaje": "Has salido del grupo correctamente"}
+
+@app.delete("/eliminarAdmin/{id_grupo}/{id_usuario}")
+def eliminar_admin(id_grupo, id_usuario, request: Request):
+    verificar_token(request)
+    bd.eliminar_admin(id_grupo, id_usuario)
+    return {"mensaje": "Admin eliminado correctamente"}
+
+@app.put("/asignarAdmin/{id_grupo}/{id_usuario}")
+def asignar_admin(id_grupo, id_usuario, request: Request):
+    verificar_token(request)
+    bd.nuevo_admin(id_usuario, id_grupo)
+    return {"mensaje": "Admin asignado correctamente"}
+
+

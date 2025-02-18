@@ -24,7 +24,7 @@
                 </a>
                 <span id="settingsLabel" class="visually-hidden">Configuración</span>
                 <button class="btn-grupo" id="openGroupModal" aria-labelledby="openGroupLabel">
-                    <i class="fas fa-plus"></i>
+                    <i class="fas fa-plus icon-black"></i>
                 </button>
                 <span id="openGroupLabel" class="visually-hidden">Abrir Modal de Grupo</span>
             </div>
@@ -32,11 +32,10 @@
             <ul id="contactsContainer" class="list-group chat-list"> </ul>
         </div>
         <div class="col-md-9 col-lg-10 chat-window">
-            <div class="chat-header text-white p-2 d-flex justify-content-between"> <button id="backButton"
-                    class="btn btn-sm d-md-none" aria-labelledby="backButtonLabel">⬅️Atras</button> <span
-                    id="backButtonLabel" class="visually-hidden">Atrás</span>
-                <button id="groupInfoButton" class="btn btn-sm fas fa-users" aria-labelledby="groupInfoLabel"
-                    alt="información"></button>
+            <div class="chat-header text-white p-2 d-flex justify-content-between align-items-center">
+                <button id="backButton" class="btn btn-sm d-md-none" aria-labelledby="backButtonLabel">⬅️Atras</button>
+                <span id="backButtonLabel" class="visually-hidden">Atrás</span>
+                <h3 id="chatHeaderTitle" class="m-0"></h3>
                 <span id="groupInfoLabel" class="visually-hidden">Información del Grupo</span>
             </div>
             <div id="chatContainer" class="chat-body p-3">
@@ -78,7 +77,8 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label"><strong>Llista de contactes</strong></label>
+                            <label id="availableContacts" class="form-label"><strong>Llista de
+                                    contactes</strong></label>
                             <ul class="list-group border" style="max-height: 200px; overflow-y: auto;">
                             </ul>
                         </div>
@@ -91,29 +91,44 @@
             </div>
         </div>
     </div>
-
-    <div class="modal" id="groupInfoModal">
+    <div class="modal" id="groupInfoModal" style="display: none;">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Información del Grupo</h5>
                     <button type="button" class="btn-close" id="closeGroupInfoModal"
                         aria-labelledby="closeGroupInfoLabel"></button>
-                    <span id="closeGroupInfoLabel" class="visually-hidden">Cerrar Información del Grupo</span>
+                    <span id="closeGroupInfoLabel" class="visually-hidden">Cerrar Modal de Información del
+                        Grupo</span>
                 </div>
                 <div class="modal-body">
-                    <h6>Nombre del Grupo:</h6>
-                    <p id="groupInfoName"></p>
-                    <h6>Descripción:</h6>
-                    <p id="groupInfoDescription"></p>
-                    <h6>Administradores:</h6>
-                    <ul id="groupAdminsList" class="list-group"></ul>
-                    <h6>Usuarios:</h6>
-                    <ul id="groupUsersList" class="list-group"></ul>
+                    <div class="mb-3">
+                        <h2 id="groupNameInfo"></h2>
+                    </div>
+                    <div class="mb-3">
+                        <label for="groupDescriptionInfo" class="form-label">
+                            <strong>Usuaris que pots afegir:</strong>
+                            <button id="addUserToGroupButton" class=" fas fa-plus buttonMb"
+                                aria-labelledby="addUserToGroupLabel"></button>
+                        </label>
+                        <ul id="llistacontactesdinsnogrup" class="list-group border"
+                            style="max-height: 200px; overflow-y: auto; display: none;">
+                        </ul>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Usuarios en el grupo:</strong></label>
+                        <ul id="groupMembersInfo" class="list-group border"
+                            style="max-height: 200px; overflow-y: auto;">
+                        </ul>
+                    </div>
+                    <div class="mb-3">
+                        <button class="btn btn-danger" id="leaveGroupButton" aria-labelledby="deleteGroupLabel">Salir
+                            del grupo</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 </body>
 
 </html>

@@ -1,6 +1,8 @@
-import { apiGet, apiPostWithToken, apiPut } from "./connectivitat.js";
+import { apiGet, apiPostWithToken, apiPut, apiDelete } from "./connectivitat.js";
 
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => cargaDOM());
+
+async function cargaDOM() {
     let usuaris = await fetchUsuarios();
     mostrarUsuarios(usuaris);
     document.getElementById('sendButton').addEventListener('click', () => enviarMensaje());
@@ -11,12 +13,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('closeGroupModal').addEventListener('click', () => {
         document.getElementById('groupModal').style.display = 'none';
     });
-
     document.getElementById('groupForm').addEventListener('submit', crearGrupo);
 
     document.getElementById("chatContainer").addEventListener("scroll", async function () {
         if (this.scrollTop === 0 && !chatData.cargando) {
             await cargarMasMensajes(false);
+        }
+    });
+
+    document.getElementById('addUserToGroupButton').addEventListener('click', function () {
+        var contactList = document.getElementById('llistacontactesdinsnogrup');
+        if (contactList.style.display === 'none') {
+            contactList.style.display = 'block';
+        } else {
+            contactList.style.display = 'none';
         }
     });
 
@@ -37,6 +47,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.querySelector('.chat-window').classList.remove('active');
     });
 
+    document.getElementById('backButton').addEventListener('click', () => {
+        document.querySelector('.chat-window').classList.remove('active');
+    });
+
     const chatBackground = localStorage.getItem("chatBackground");
     if (chatBackground) {
         const chatContainer = document.getElementById("chatContainer");
@@ -44,8 +58,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         chatContainer.style.backgroundSize = "cover";
         chatContainer.style.backgroundPosition = "center";
     }
-
-});
+}
 
 
 let chatData = {
@@ -74,18 +87,25 @@ async function mostraChat(contacto) {
 
     await cargarMasMensajes(true);
 
-    let chatHeader = document.querySelector(".chat-header");
-
-    chatHeader.innerHTML = '';
-    let h3 = document.createElement('h3');
-    h3.textContent = contacto.tipo === "usuario" ? contacto.nombre_usuario : contacto.nombre_grupo;
-    chatHeader.appendChild(h3);
+    let chatHeaderTitle = document.getElementById("chatHeaderTitle");
+    chatHeaderTitle.textContent = contacto.tipo === "usuario" ? contacto.nombre_usuario : contacto.nombre_grupo;
+    let chatHeader = document.querySelector('.chat-header');
+    if (document.getElementById('groupInfoButton')) {
+        document.getElementById('groupInfoButton').remove();
+    }
     sessionStorage.setItem('chat', JSON.stringify(contacto));
 
     if (contacto.tipo === "usuario") {
         await apiPut(`/check`, { id_contacto: contacto.id, nou_estat: 'leido' }, token);
     } else {
+        await apiPut(`/checkGrupo/${contacto.id}`, {}, token);
         document.getElementById('messageInput').disabled = false;
+        let groupInfoButton = document.createElement('button');
+        groupInfoButton.id = 'groupInfoButton';
+        groupInfoButton.classList.add('btn', 'btn-sm', 'fas', 'fa-users');
+        groupInfoButton.style.display = 'block';
+        groupInfoButton.addEventListener('click', () => adminGrupo(contacto.id));
+        chatHeader.appendChild(groupInfoButton);
     }
 
     document.querySelector('.chat-window').classList.add('active');
@@ -146,14 +166,7 @@ async function cargarMasMensajes(primeraCarga) {
     chatData.cargando = false;
 }
 
-$(document).ready(function () {
-    $('#groupInfoButton').click(function () {
-        $('#groupInfoModal').show();
-    });
-    $('#closeGroupInfoModal').click(function () {
-        $('#groupInfoModal').hide();
-    });
-});
+
 
 function pintarMensajesUsuario(mensajes, idUsuario, primeraCarga) {
     let chatContainer = document.getElementById("chatContainer");
@@ -198,14 +211,31 @@ function pintarMensajesGrupo(mensajes, id_usuario, primeraCarga) {
     let chatContainer = document.getElementById('chatContainer');
     let scrollPos = chatContainer.scrollHeight - chatContainer.scrollTop;
     console.log("👤 Usuario actual:", id_usuario);
+    let tickElement;
     mensajes.forEach(mensaje => {
         let messageElement = document.createElement('div');
+        tickElement = document.createElement('span');
         if (mensaje.id_usuari === id_usuario) {
             messageElement.classList.add('message', 'sent');
+            tickElement.classList.add('tick');
+            if (mensaje.estat === 'leido') {
+                console.log("📩 Missatge llegit:", mensaje);
+                tickElement.classList.add('leido');
+                tickElement.textContent = '  🗸🗸';
+            } else {
+                tickElement.textContent = '  🗸';
+            }
         } else {
             messageElement.classList.add('message', 'received');
         }
         messageElement.textContent = `${mensaje.nom}: ${mensaje.text}`;
+
+        let messageTime = document.createElement('span');
+        messageTime.classList.add('time');
+        messageTime.textContent = mensaje.date.split("T")[1].slice(0, 5);
+
+        messageElement.appendChild(messageTime);
+        messageElement.appendChild(tickElement);
         chatContainer.insertBefore(messageElement, chatContainer.firstChild);
     });
 
@@ -349,7 +379,7 @@ async function enviarMensaje() {
             }
 
             document.getElementById('messageInput').value = '';
-            mostraChat(destinatario); // ✅ Manté la mateixa estructura
+            mostraChat(destinatario);
         } catch (error) {
             console.error("Error enviant missatge:", error);
         }
@@ -365,7 +395,7 @@ async function enviarMensaje() {
             }
 
             document.getElementById('messageInput').value = '';
-            mostraChat(destinatario); // ✅ Manté la mateixa estructura
+            mostraChat(destinatario);
         } catch (error) {
             console.error("Error enviant missatge:", error);
         }
@@ -425,7 +455,7 @@ async function crearGrupo(event) {
 function agregarAGrupo(contacto) {
     let selectedContactsContainer = document.getElementById('selectedContactsContainer');
 
-    // Evita afegir usuaris duplicats
+
     if (document.querySelector(`#selectedContactsContainer span[data-id="${contacto.id_usuario}"]`)) {
         return;
     }
@@ -472,3 +502,179 @@ async function cargarContactosParaGrupo() {
 }
 
 
+async function adminGrupo(id_grupo) {
+    let token = comprobarToken();
+    let response = await apiGet(`/adminGrupo/${id_grupo}`, token);
+    let groupInfo = await apiGet(`/miembrosGrupo/${id_grupo}`, token);
+    let contactosResponse = await apiGet(`/contactos`, token);
+
+    if (!response || !groupInfo || !contactosResponse) {
+        console.error("❌ No se pudo obtener la información del grupo o contactos.");
+        return;
+    }
+
+    // Verificar que 'groupMembersInfo' existe antes de modificarlo
+    let membersList = document.getElementById('groupMembersInfo');
+    if (!membersList) {
+        console.error("⚠️ Element 'groupMembersInfo' no encontrado en el DOM.");
+        return;
+    }
+    membersList.innerHTML = '';
+
+    let admin = response.find(user => user.id_usuario === groupInfo.id_usuario);
+
+    groupInfo.miembros.forEach(miembro => {
+        let memberItem = document.createElement('li');
+        memberItem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
+
+        let usernameSpan = document.createElement('span');
+        usernameSpan.textContent = miembro.username;
+        memberItem.appendChild(usernameSpan);
+
+        let buttonContainer = document.createElement('div');
+        buttonContainer.classList.add('d-flex', 'gap-2');
+
+        if (miembro.es_admin) {
+            let adminBadge = document.createElement('span');
+            adminBadge.classList.add('badge', 'bg-success');
+            adminBadge.textContent = 'Administrador';
+            memberItem.appendChild(adminBadge);
+
+            if (admin && groupInfo.id_usuario !== miembro.id_usuario) {
+                let removeAdminButton = document.createElement('button');
+                removeAdminButton.classList.add('btn', 'btn-sm', 'fas', 'fa-crown');
+                removeAdminButton.addEventListener('click', () => eliminarAdmin(miembro.id_usuario));
+                buttonContainer.appendChild(removeAdminButton);
+            }
+
+        } else if (admin) {
+            let makeAdminButton = document.createElement('button');
+            makeAdminButton.classList.add('btn', 'btn-sm');
+            makeAdminButton.textContent = '👑';
+            makeAdminButton.addEventListener('click', () => añadirAdmin(miembro.id_usuario));
+            buttonContainer.appendChild(makeAdminButton);
+        }
+        if (admin && groupInfo.id_usuario !== miembro.id_usuario) {
+            let removeButton = document.createElement('button');
+            removeButton.classList.add('btn', 'btn-sm');
+            removeButton.textContent = '❌';
+            removeButton.addEventListener('click', () => eliminarMiembro(miembro.id_usuario));
+            buttonContainer.appendChild(removeButton);
+        }
+        memberItem.appendChild(buttonContainer);
+        membersList.appendChild(memberItem);
+    });
+
+
+    let availableContactsList = document.getElementById('llistacontactesdinsnogrup');
+    if (!availableContactsList) {
+        console.error("⚠️ Element 'listacontactesdinsnogrup' no trobat al DOM.");
+        return;
+    }
+    availableContactsList.innerHTML = '';
+
+    let idsMiembrosGrupo = new Set(groupInfo.miembros.map(m => m.id_usuario));
+
+    let contactosDisponibles = contactosResponse.contactos.filter(contacto =>
+        contacto.id_usuario !== null &&  // Excloem grups (els grups tenen id_grupo, no id_usuario)
+        !idsMiembrosGrupo.has(contacto.id_usuario) // Excloem usuaris que ja són al grup
+    );
+
+    contactosDisponibles.forEach(contacto => {
+        let contactItem = document.createElement('li');
+        contactItem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
+
+        let contactNameSpan = document.createElement('span');
+        contactNameSpan.textContent = contacto.nombre_usuario;
+        contactItem.appendChild(contactNameSpan);
+
+        let addButton = document.createElement('button');
+        addButton.classList.add('btn', 'btn-sm');
+        addButton.textContent = '➕';
+        addButton.addEventListener('click', () => añadirMiembroAlGrupo(id_grupo, contacto.id_usuario));
+
+        contactItem.appendChild(addButton);
+        availableContactsList.appendChild(contactItem);
+    });
+
+
+    let esUnicoAdmin = groupInfo.miembros.filter(miembro => miembro.es_admin).length === 1 && groupInfo.miembros.some(miembro => miembro.id_usuario === groupInfo.id_usuario);
+
+    if (esUnicoAdmin) {
+        let unicoAdminWarning = document.createElement('p');
+        unicoAdminWarning.classList.add('alert', 'alert-warning');
+        unicoAdminWarning.textContent = '⚠️ Ets l\'únic administrador del grup. Assigna un altre administrador abans de sortir.';
+        membersList.appendChild(unicoAdminWarning);
+        document.getElementById('leaveGroupButton').addEventListener('click', () => alert('⚠️ Ets l\'únic administrador del grup. Assigna un altre administrador abans de sortir.'));
+    } else {
+        document.getElementById('leaveGroupButton').addEventListener('click', () => salirDeGrupo(id_grupo));
+    }
+
+    document.getElementById('groupInfoModal').style.display = 'block';
+    document.getElementById('closeGroupInfoModal').addEventListener('click', () => {
+        document.getElementById('groupInfoModal').style.display = 'none';
+    });
+}
+
+async function eliminarMiembro(id_usuario) {
+    let confirmacion = confirm('Segur que vols eliminar aquest usuari del grup?');
+    if (!confirmacion) return;
+    let token = comprobarToken();
+    let id_grupo = JSON.parse(sessionStorage.getItem('chat')).id;
+
+    let response = await apiDelete(`/eliminarMiembro/${id_grupo}/${id_usuario}`, token);
+    if (response && !response.error) {
+        adminGrupo(id_grupo);
+    } else {
+        alert('❌ Error eliminant l\'usuari.');
+    }
+}
+
+async function añadirAdmin(id_usuario) {
+    let confirmacio = confirm('Segur que vols assignar aquest usuari com a administrador del grup?');
+    if (!confirmacio) return;
+    let token = comprobarToken();
+    let id_grupo = JSON.parse(sessionStorage.getItem('chat')).id;
+    let response = await apiPut(`/asignarAdmin/${id_grupo}/${id_usuario}`, {}, token);
+    if (response && !response.error) {
+        adminGrupo(id_grupo);
+    } else {
+        alert('❌ Error assignant l\'administrador.');
+    }
+}
+
+async function salirDeGrupo(id_grupo) {
+    let confirmacion = confirm('Segur que vols sortir del grup?');
+    if (!confirmacion) return;
+    let token = comprobarToken();
+    let response = await apiDelete(`/salirGrupo/${id_grupo}`, token);
+    if (response && !response.error) {
+        document.getElementById('groupInfoModal').style.display = 'none';
+        cargaDOM();
+    } else {
+        alert('❌ Error sortint del grup.');
+    }
+}
+
+async function añadirMiembroAlGrupo(id_grupo, id_usuario) {
+    let token = comprobarToken();
+    let response = await apiPut(`/añadirMiembro/${id_grupo}/${id_usuario}`, {}, token);
+    if (response && !response.error) {
+        adminGrupo(id_grupo);
+    } else {
+        alert('❌ Error afegint l\'usuari al grup.');
+    }
+}
+
+async function eliminarAdmin(id_usuario) {
+    let confirmacio = confirm('Segur que vols eliminar aquest usuari com a administrador del grup?');
+    if (!confirmacio) return;
+    let token = comprobarToken();
+    let id_grupo = JSON.parse(sessionStorage.getItem('chat')).id;
+    let response = await apiDelete(`/eliminarAdmin/${id_grupo}/${id_usuario}`, token);
+    if (response && !response.error) {
+        adminGrupo(id_grupo);
+    } else {
+        alert('❌ Error eliminant l\'administrador.');
+    }
+}

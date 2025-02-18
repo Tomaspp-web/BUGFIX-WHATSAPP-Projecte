@@ -69,7 +69,6 @@ body {
     border: none;
     border-radius: 8px;
     margin-bottom: 5px;
-    transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -167,6 +166,7 @@ body {
 
 .time {
     margin-left: 15px;
+    font-size: 11px;
 }
 
 .modal {
@@ -224,6 +224,12 @@ body {
     border: none;
     border-radius: 8px;
     cursor: pointer;
+}
+
+#availableContacts {
+    max-height: 200px;
+    width: 100%;
+    overflow-y: auto;
 }
 
 
@@ -473,4 +479,14 @@ body {
     color: #34b7f1;
     font-weight: bold;
     margin-left: 8px;
+}
+
+.buttonMb {
+    display: flex;
+    background-color: gray;
+    border-radius: 40%;
+    color: white;
+    margin-left: auto;
+    margin-left: 145px;
+
 }

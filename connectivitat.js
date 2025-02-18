@@ -3,7 +3,6 @@ export let API_URL = 'http://localhost:8000';
 export async function apiGet(endpoint, token = '') {
     try {
         console.log(`📡 Enviando petición GET a ${API_URL}${endpoint} con token:`, token);
-
         let response = await fetch(`${API_URL}${endpoint}`, {
             method: 'GET',
             headers: {
@@ -89,6 +88,24 @@ export async function apiPut(endpoint, data, token) {
         return await response.json();
     } catch (error) {
         console.error(`PUT ${endpoint} - ${error.message}`);
+        throw error;
+    }
+}
+
+export async function apiDelete(endpoint, token) {
+    try {
+        let response = await fetch(`${API_URL}${endpoint}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) throw new Error(`Error ${response.status}: ${response.statusText}`);
+        return await response.json();
+    } catch (error) {
+        console.error(`DELETE ${endpoint} - ${error.message}`);
         throw error;
     }
 }

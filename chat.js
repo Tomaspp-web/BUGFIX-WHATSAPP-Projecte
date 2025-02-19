@@ -519,9 +519,32 @@ async function adminGrupo(id_grupo) {
         console.error("⚠️ Element 'groupMembersInfo' no encontrado en el DOM.");
         return;
     }
+    let groupName = document.getElementById('groupNameInfo');
+    groupName.innerHTML = groupInfo.infoGrupo.nombre;
+
+    let descripcionGrupo = document.getElementById('groupDesc');
+    descripcionGrupo.innerHTML = groupInfo.infoGrupo.descripcion;
+
     membersList.innerHTML = '';
+    
+    document.getElementById('leaveGroupContainer').innerHTML = '';
 
     let admin = response.find(user => user.id_usuario === groupInfo.id_usuario);
+
+    if (admin) {
+        let changeNameButton = document.createElement('button');
+        changeNameButton.classList.add('btn', 'btn-sm');
+        changeNameButton.textContent = '📝';
+        changeNameButton.addEventListener('click', () => cambiarNombre(id_grupo));
+        groupName.parentElement.appendChild(changeNameButton);
+
+        let changeDescButton = document.createElement('button');
+        changeDescButton.classList.add('btn', 'btn-sm');
+        changeDescButton.textContent = '📝'
+        changeDescButton.addEventListener('click', () => cambiarDescripcion(id_grupo));
+        descripcionGrupo.insertBefore(changeDescButton, descripcionGrupo.firstChild);
+    }
+
 
     groupInfo.miembros.forEach(miembro => {
         let memberItem = document.createElement('li');
@@ -553,6 +576,9 @@ async function adminGrupo(id_grupo) {
             makeAdminButton.textContent = '👑';
             makeAdminButton.addEventListener('click', () => añadirAdmin(miembro.id_usuario));
             buttonContainer.appendChild(makeAdminButton);
+
+    
+
         }
         if (admin && groupInfo.id_usuario !== miembro.id_usuario) {
             let removeButton = document.createElement('button');
@@ -605,9 +631,19 @@ async function adminGrupo(id_grupo) {
         unicoAdminWarning.classList.add('alert', 'alert-warning');
         unicoAdminWarning.textContent = '⚠️ Ets l\'únic administrador del grup. Assigna un altre administrador abans de sortir.';
         membersList.appendChild(unicoAdminWarning);
-        document.getElementById('leaveGroupButton').addEventListener('click', () => alert('⚠️ Ets l\'únic administrador del grup. Assigna un altre administrador abans de sortir.'));
+        let leaveGroupButton = document.createElement('button');
+        leaveGroupButton.id = 'leaveGroupButton';
+        leaveGroupButton.classList.add('btn', 'btn-danger');
+        leaveGroupButton.textContent = 'Sortir del grup';
+        leaveGroupButton.addEventListener('click', () => alert('⚠️ Ets l\'únic administrador del grup. Assigna un altre administrador abans de sortir.'));
+        document.getElementById('leaveGroupContainer').appendChild(leaveGroupButton);
     } else {
-        document.getElementById('leaveGroupButton').addEventListener('click', () => salirDeGrupo(id_grupo));
+        let leaveGroupButton = document.createElement('button');
+        leaveGroupButton.id = 'leaveGroupButton';
+        leaveGroupButton.classList.add('btn', 'btn-danger');
+        leaveGroupButton.textContent = 'Sortir del grup';
+        leaveGroupButton.addEventListener('click', () => salirDeGrupo(id_grupo));
+        document.getElementById('leaveGroupContainer').appendChild(leaveGroupButton);
     }
 
     document.getElementById('groupInfoModal').style.display = 'block';
@@ -676,5 +712,31 @@ async function eliminarAdmin(id_usuario) {
         adminGrupo(id_grupo);
     } else {
         alert('❌ Error eliminant l\'administrador.');
+    }
+}
+
+
+async function cambiarDescripcion(id_grupo) {
+    let token = comprobarToken();
+    let descripcion = prompt('Introdueix la nova descripció del grup:');
+    if (!descripcion) return;
+    let response = await apiPut(`/cambiaDescripcionGrupo/${id_grupo}`, { descripcion: descripcion }, token);
+    if (response && !response.error) {
+        adminGrupo(id_grupo);
+    } else {
+        alert('❌ Error canviant la descripció.');
+    }
+    
+}
+
+async function cambiarNombre(id_grupo) {
+    let token = comprobarToken();
+    let nombre = prompt('Introdueix el nou nom del grup:');
+    if (!nombre) return;
+    let response = await apiPut(`/cambiaNombreGrupo/${id_grupo}`, { nombre: nombre }, token);
+    if (response && !response.error) {
+        adminGrupo(id_grupo);
+    } else {
+        alert('❌ Error canviant el nom.');
     }
 }

@@ -232,6 +232,19 @@ class BaseDeDatos:
         sql = "INSERT INTO grupos_administradores (id_usuario, id_grupo) VALUES (%s, %s)"
         self.cursor.execute(sql, (id_usuario, id_grupo))
 
+    def get_info_grupo(self, id_grupo):
+        sql = "SELECT * FROM grupos WHERE id = %s"
+        self.cursor.execute(sql, (id_grupo))
+        return self.cursor.fetchone()
+    
+    def cambiar_nombre_grupo(self, id_grupo, nombre):
+        sql = "UPDATE grupos SET nombre = %s WHERE id = %s"
+        self.cursor.execute(sql, (nombre, id_grupo))
+
+    def cambiar_descripcion_grupo(self, id_grupo, descripcion):
+        sql = "UPDATE grupos SET descripcion = %s WHERE id = %s"
+        self.cursor.execute(sql, (descripcion, id_grupo))
+
     def obtener_contactos(self, id_usuario):
         sql = """(
     SELECT g.id AS id_grupo, g.nombre AS nombre_grupo, 

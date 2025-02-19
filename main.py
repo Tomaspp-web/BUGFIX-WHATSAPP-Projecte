@@ -209,8 +209,8 @@ def obtener_miembros_grupo(id_grupo, request: Request):
     verificar_token(request)
     miembros = bd.obtener_miembros(id_grupo)
     admin = bd.obtener_admins(id_grupo)
-    return {"miembros": miembros, "id_usuario": request.state.id, "admin": admin}
-
+    infoGrupo = bd.get_info_grupo(id_grupo)
+    return {"miembros": miembros, "id_usuario": request.state.id, "admin": admin, "infoGrupo": infoGrupo}
 
 @app.put("/añadirMiembro/{id_grupo}/{id_usuario}")
 def añadir_miembro(id_grupo, id_usuario, request: Request):
@@ -241,5 +241,17 @@ def asignar_admin(id_grupo, id_usuario, request: Request):
     verificar_token(request)
     bd.nuevo_admin(id_usuario, id_grupo)
     return {"mensaje": "Admin asignado correctamente"}
+
+@app.post("/cambiaNombreGrupo/{id_grupo}")
+def cambiar_nombre_grupo(id_grupo: int, nombre: str, request: Request):
+    verificar_token(request)
+    bd.cambiar_nombre_grupo(id_grupo, nombre)
+    return {"mensaje": "Nombre del grupo cambiado correctamente"}
+
+@app.post("/cambiaDescripcionGrupo/{id_grupo}")
+def cambiar_descripcion_grupo(id_grupo, descripcion: str, request: Request):
+    verificar_token(request)
+    bd.cambiar_descripcion_grupo(id_grupo, descripcion)
+    return {"mensaje": "Descripción del grupo cambiada correctamente"}
 
 

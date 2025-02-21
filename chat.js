@@ -2,6 +2,27 @@ import { apiGet, apiPostWithToken, apiPut, apiDelete } from "./connectivitat.js"
 
 document.addEventListener('DOMContentLoaded', () => cargaDOM());
 
+/* fetchUsuarios 
+mostraChat
+cargarMasMensajes
+pintarMensajesUsuario
+pintarMensajesGrupo
+scrollToBottom
+comprobarToken
+mostrarUsuarios
+enviarMensaje
+crearGrupo
+agregarAGrupo
+cargarContactosParaGrupo
+adminGrupo
+eliminarMiembro
+añadirAdmin
+salirDeGrupo
+añadirMiembroAlGrupo
+eliminarAdmin
+cambiarDescripcion
+cambiarNombre 
+*/
 async function cargaDOM() {
     let usuaris = await fetchUsuarios();
     mostrarUsuarios(usuaris);
@@ -526,20 +547,24 @@ async function adminGrupo(id_grupo) {
     descripcionGrupo.innerHTML = groupInfo.infoGrupo.descripcion;
 
     membersList.innerHTML = '';
-    
+
     document.getElementById('leaveGroupContainer').innerHTML = '';
 
     let admin = response.find(user => user.id_usuario === groupInfo.id_usuario);
 
+
     if (admin) {
+
         let changeNameButton = document.createElement('button');
         changeNameButton.classList.add('btn', 'btn-sm');
+        changeNameButton.id = 'changeNameButton';
         changeNameButton.textContent = '📝';
         changeNameButton.addEventListener('click', () => cambiarNombre(id_grupo));
         groupName.parentElement.appendChild(changeNameButton);
 
         let changeDescButton = document.createElement('button');
         changeDescButton.classList.add('btn', 'btn-sm');
+        changeDescButton.id = 'changeDescButton';
         changeDescButton.textContent = '📝'
         changeDescButton.addEventListener('click', () => cambiarDescripcion(id_grupo));
         descripcionGrupo.insertBefore(changeDescButton, descripcionGrupo.firstChild);
@@ -577,7 +602,7 @@ async function adminGrupo(id_grupo) {
             makeAdminButton.addEventListener('click', () => añadirAdmin(miembro.id_usuario));
             buttonContainer.appendChild(makeAdminButton);
 
-    
+
 
         }
         if (admin && groupInfo.id_usuario !== miembro.id_usuario) {
@@ -721,12 +746,14 @@ async function cambiarDescripcion(id_grupo) {
     let descripcion = prompt('Introdueix la nova descripció del grup:');
     if (!descripcion) return;
     let response = await apiPut(`/cambiaDescripcionGrupo/${id_grupo}`, { descripcion: descripcion }, token);
+    document.getElementById('changeNameButton').remove();
+    document.getElementById('changeDescButton').remove();
     if (response && !response.error) {
         adminGrupo(id_grupo);
     } else {
         alert('❌ Error canviant la descripció.');
     }
-    
+
 }
 
 async function cambiarNombre(id_grupo) {
@@ -734,6 +761,8 @@ async function cambiarNombre(id_grupo) {
     let nombre = prompt('Introdueix el nou nom del grup:');
     if (!nombre) return;
     let response = await apiPut(`/cambiaNombreGrupo/${id_grupo}`, { nombre: nombre }, token);
+    document.getElementById('changeNameButton').remove();
+    document.getElementById('changeDescButton').remove();
     if (response && !response.error) {
         adminGrupo(id_grupo);
     } else {

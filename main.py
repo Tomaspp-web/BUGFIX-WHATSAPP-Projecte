@@ -190,7 +190,6 @@ def obtener_usuarios(id_usuario: int):
     usuario = bd.get_username(id_usuario)
     return usuario
 
-
 @app.get("/contactos")
 def obtener_contactos(request: Request):
     verificar_token(request)
@@ -242,16 +241,24 @@ def asignar_admin(id_grupo, id_usuario, request: Request):
     bd.nuevo_admin(id_usuario, id_grupo)
     return {"mensaje": "Admin asignado correctamente"}
 
-@app.post("/cambiaNombreGrupo/{id_grupo}")
-def cambiar_nombre_grupo(id_grupo: int, nombre: str, request: Request):
+
+class NombreGrupo(BaseModel):
+    nombre: str
+
+@app.put("/cambiaNombreGrupo/{id_grupo}")
+def cambiar_nombre_grupo(id_grupo: int, datos: NombreGrupo, request: Request):
     verificar_token(request)
-    bd.cambiar_nombre_grupo(id_grupo, nombre)
+    bd.cambiar_nombre_grupo(id_grupo, datos.nombre)
     return {"mensaje": "Nombre del grupo cambiado correctamente"}
 
-@app.post("/cambiaDescripcionGrupo/{id_grupo}")
-def cambiar_descripcion_grupo(id_grupo, descripcion: str, request: Request):
+
+class DescripcionGrupo(BaseModel):
+    descripcion: str
+
+@app.put("/cambiaDescripcionGrupo/{id_grupo}")
+def cambiar_descripcion_grupo(id_grupo: int, descripcion_data: DescripcionGrupo, request: Request):
     verificar_token(request)
-    bd.cambiar_descripcion_grupo(id_grupo, descripcion)
+    bd.cambiar_descripcion_grupo(id_grupo, descripcion_data.descripcion)
     return {"mensaje": "Descripción del grupo cambiada correctamente"}
 
 
